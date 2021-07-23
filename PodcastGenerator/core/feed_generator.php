@@ -28,8 +28,6 @@ function generateRSS()
 		<lastBuildDate>' . date('r') . '</lastBuildDate>
 		<language>' . substr($config['feed_language'], 0, 2) . '</language>
 		<copyright>' . htmlspecialchars($config['copyright']) . '</copyright>
-		<managingEditor>' . htmlspecialchars($config['author_email']) . '</managingEditor>
-		<webMaster>' . htmlspecialchars($config['webmaster']) . '</webMaster>
 		<itunes:image href="' . $config['url'] . $config['img_dir'] . 'itunes_image.jpg" />
 		<image>
 			<url>' . $config['url'] . $config['img_dir'] . 'itunes_image.jpg</url>
@@ -50,9 +48,6 @@ function generateRSS()
     }
     if ($config['itunes_category[2]'] != '' || $config['itunes_category[1]'] == 'null') {
         $feedhead .= '		<itunes:category text="' . htmlspecialchars($config['itunes_category[2]']) . '"></itunes:category>' . "\n";
-    }
-    if ($config['websub_server'] != '') {
-        $feedhead .= '		<atom:link href="' . $config['websub_server'] . '" rel="hub" />' . "\n";
     }
     // Get supported file extensions
     $supported_extensions = array();
@@ -122,8 +117,6 @@ function generateRSS()
         } else {
             $author = $config['author_email'] . ' (' . $config['author_name'] . ')';
         }
-        // Generate GUID if a pregenerated GUID is missing for the episode
-        $guid = isset($file->episode->guid) ? $file->episode->guid : $config['url'] . "?" . $link . "=" . $files[$i]['filename'];
         // Check if this episode has a cover art
         $basename = pathinfo($config['absoluteurl'] . $config['upload_dir'] . $files[$i]['filename'], PATHINFO_FILENAME);
         $has_cover = false;
@@ -137,29 +130,29 @@ function generateRSS()
         $linebreak = "\n";
         $item = '
         <item>' . "\n";
-        $item .= $indent . '<title>' . $file->episode->titlePG . '</title>' . $linebreak;
-        $item .= $indent . '<itunes:subtitle><![CDATA[' . $file->episode->shortdescPG . ']]></itunes:subtitle>' . $linebreak;
-        $item .= $indent . '<description><![CDATA[' . $file->episode->shortdescPG . ']]></description>' . $linebreak;
-        if ($file->episode->longdescPG != "") {
-            $item .= $indent . '<itunes:summary><![CDATA[' . $file->episode->longdescPG . ']]></itunes:summary>' . $linebreak;
+        $item .= $indent . '<title>' . htmlspecialchars($file->episode->titlePG) . '</title>' . $linebreak;
+        $item .= $indent . '<itunes:subtitle>' . htmlspecialchars($file->episode->shortdescPG) . '</itunes:subtitle>' . $linebreak;
+        $item .= $indent . '<description>' . htmlspecialchars($file->episode->shortdescPG) . '</description>' . $linebreak;
+        if ($file->episode->longdescPG == "<![CDATA[]]>") {
+            $item .= $indent . '<itunes:summary><![CDATA[' . htmlspecialchars($file->episode->longdescPG) . ']]></itunes:summary>' . $linebreak;
         }
-        $item .= $indent . '<link>' . $config['url'] . '?' . $link . '=' . $files[$i]['filename'] . '</link>' . $linebreak;
-        $item .= $indent . '<enclosure url="' . $original_full_filepath . '" length="' . filesize($config['absoluteurl'] . $config['upload_dir'] . $files[$i]['filename']) . '" type="' . $mimetype . '"></enclosure>' . $linebreak;
-        $item .= $indent . '<guid>' . $guid . '</guid>' . $linebreak;
+        $item .= $indent . '<link>' . htmlspecialchars($config['url'] . '?' . $link . '=' . $files[$i]['filename']) . '</link>' . $linebreak;
+        $item .= $indent . '<enclosure url="' . htmlspecialchars($original_full_filepath) . '" length="' . filesize($config['absoluteurl'] . $config['upload_dir'] . $files[$i]['filename']) . '" type="' . $mimetype . '"></enclosure>' . $linebreak;
+        $item .= $indent . '<guid>' . htmlspecialchars($config['url'] . "?" . $link . "=" . $files[$i]['filename']) . '</guid>' . $linebreak;
         $item .= $indent . '<itunes:duration>' . $file->episode->fileInfoPG->duration . '</itunes:duration>' . $linebreak;
         $item .= $indent . '<author>' . htmlspecialchars($author) . '</author>' . $linebreak;
         if (!empty($file->episode->authorPG->namePG)) {
             $item .= $indent . '<itunes:author>' . htmlspecialchars($file->episode->authorPG->namePG) . '</itunes:author>' . $linebreak;
         } else {
-            $item .= $indent . '<itunes:author>' . $config['author_name'] . '</itunes:author>' . $linebreak;
+            $item .= $indent . '<itunes:author>' . htmlspecialchars($config['author_name']) . '</itunes:author>' . $linebreak;
         }
-        if ($file->episode->keywordsPG != "") {
-            $item .= $indent . '<itunes:keywords>' . $file->episode->keywordsPG . '</itunes:keywords>' . $linebreak;
+        if ($file->episode->keywordsPG == "<![CDATA[]]>") {
+            $item .= $indent . '<itunes:keywords>' . htmlspecialchars($file->episode->keywordsPG) . '</itunes:keywords>' . $linebreak;
         }
-        $item .= $indent . '<itunes:explicit>' . $file->episode->explicitPG . '</itunes:explicit>' . $linebreak;
+        $item .= $indent . '<itunes:explicit>' . htmlspecialchars($file->episode->explicitPG) . '</itunes:explicit>' . $linebreak;
         // If image is set
         if ($has_cover)
-            $item .= $indent . '<itunes:image href="' . $has_cover . '" />' . $linebreak;
+            $item .= $indent . '<itunes:image href="' . htmlspecialchars($has_cover) . '" />' . $linebreak;
         $item .= $indent . '<pubDate>' . date("r", $files[$i]['lastModified']) . '</pubDate>' . $linebreak;
         $item .= "\t\t</item>\n";
         // Push XML to the real XML
